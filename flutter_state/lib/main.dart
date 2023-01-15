@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_state/counter_interactor.dart';
-import 'package:flutter_state/counter_model.dart';
+import 'package:flutter_state/bloc.dart';
+import 'package:flutter_state/counter_bloc.dart';
 
 void main() {
   runApp(const MyApp());
@@ -29,7 +29,7 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  final interactor = CounterInteractor();
+  final counterBloc = CounterBloc();
 
   @override
   Widget build(BuildContext context) {
@@ -37,13 +37,16 @@ class _MainPageState extends State<MainPage> {
       appBar: AppBar(
         title: const Text('Flutter State'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CounterWidget(interactor: interactor),
-            PressMeButton(interactor: interactor),
-          ],
+      body: BlocProvider(
+        bloc: counterBloc,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              CounterWidget(),
+              PressMeButton(),
+            ],
+          ),
         ),
       ),
     );
@@ -51,23 +54,22 @@ class _MainPageState extends State<MainPage> {
 
   @override
   void dispose() {
-    interactor.dispose();
+    counterBloc.dispose();
     super.dispose();
   }
 }
 
 class CounterWidget extends StatelessWidget {
-  final CounterInteractor interactor;
-
   const CounterWidget({
     super.key,
-    required this.interactor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final counterBloc = BlocProvider.of<CounterBloc>(context);
+
     return StreamBuilder(
-      stream: interactor.output,
+      stream: counterBloc.output,
       builder: (context, snapshot) {
         return Column(
           children: [
@@ -80,23 +82,22 @@ class CounterWidget extends StatelessWidget {
 }
 
 class PressMeButton extends StatelessWidget {
-  final CounterInteractor interactor;
-
   const PressMeButton({
     super.key,
-    required this.interactor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final counterBloc = BlocProvider.of<CounterBloc>(context);
+
     return TextButton(
       onPressed: () {
-        interactor.input.add(
+        counterBloc.input.add(
           CounterInteractorIncrementBy(1),
         );
       },
       child: StreamBuilder(
-        stream: interactor.output,
+        stream: counterBloc.output,
         builder: (context, snapshot) {
           return Text(
             'Press me Current value ${snapshot.data?.currentValue ?? 0}',

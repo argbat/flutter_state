@@ -1,26 +1,28 @@
 import 'dart:async';
 
+import 'package:flutter_state/bloc.dart';
 import 'package:flutter_state/counter_model.dart';
 
 abstract class CounterInteractorInput {}
 
-class CounterInteractorIncrementBy extends CounterInteractorInput {
+class CounterInteractorIncrementBy implements CounterInteractorInput {
   final int by;
 
   CounterInteractorIncrementBy(this.by);
 }
 
-class CounterInteractor {
+class CounterBloc implements Bloc {
   final _counter = CounterModel();
 
   final _inputStreamController = StreamController<CounterInteractorInput>();
   StreamSink<CounterInteractorInput> get input => _inputStreamController.sink;
+  late final StreamSubscription<CounterInteractorInput> _inputSubscription;
 
   final _outputStreamController = StreamController<CounterModel>.broadcast();
   Stream<CounterModel> get output => _outputStreamController.stream;
 
-  CounterInteractor() {
-    _inputStreamController.stream.listen(_handler);
+  CounterBloc() {
+    _inputSubscription = _inputStreamController.stream.listen(_handler);
   }
 
   void _handler(dynamic event) {
@@ -34,8 +36,10 @@ class CounterInteractor {
     _counter.increment(by: by);
   }
 
+  @override
   void dispose() {
     _outputStreamController.close();
+    _inputSubscription.cancel();
     _inputStreamController.close();
   }
 }
