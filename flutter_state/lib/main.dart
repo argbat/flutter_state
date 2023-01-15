@@ -63,12 +63,14 @@ class CounterWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final counterModel = Provider.of<CounterModel>(context);
-
-    return Column(
-      children: [
-        Text('${counterModel.currentValue}'),
-      ],
+    return Consumer<CounterModel>(
+      builder: (_, counterModel, __) {
+        return Column(
+          children: [
+            Text('${counterModel.currentValue}'),
+          ],
+        );
+      },
     );
   }
 }
@@ -85,15 +87,15 @@ class PressMeButton extends StatefulWidget {
 class _PressMeButtonState extends State<PressMeButton> {
   @override
   Widget build(BuildContext context) {
-    final counterModel = Provider.of<CounterModel>(context);
-
-    return TextButton(
-      onPressed: () {
-        counterModel.increment(by: 1);
-      },
-      child: Text(
-        'Press me Current value ${counterModel.currentValue}',
-      ),
-    );
+    return Consumer<CounterModel>(builder: (_, counterModel, __) {
+      return TextButton(
+        onPressed: () {
+          counterModel.increment(by: 1);
+        },
+        child: Text(
+          'Press me Current value ${counterModel.currentValue}',
+        ),
+      );
+    });
   }
 }
