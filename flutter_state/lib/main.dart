@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_state/counter_interactor.dart';
 import 'package:flutter_state/counter_model.dart';
-import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,10 +16,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: ChangeNotifierProvider<CounterModel>(
-        create: (context) => CounterModel(),
-        child: const MainPage(),
-      ),
+      home: const MainPage(),
     );
   }
 }
@@ -32,6 +29,8 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  final interactor = CounterInteractor();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,8 +41,8 @@ class _MainPageState extends State<MainPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CounterWidget(),
-            PressMeButton(),
+            CounterWidget(interactor: interactor),
+            PressMeButton(interactor: interactor),
           ],
         ),
       ),
@@ -52,22 +51,27 @@ class _MainPageState extends State<MainPage> {
 
   @override
   void dispose() {
+    interactor.dispose();
     super.dispose();
   }
 }
 
 class CounterWidget extends StatelessWidget {
+  final CounterInteractor interactor;
+
   const CounterWidget({
     super.key,
+    required this.interactor,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<CounterModel>(
-      builder: (_, counterModel, __) {
+    return StreamBuilder(
+      stream: interactor.output,
+      builder: (context, snapshot) {
         return Column(
           children: [
-            Text('${counterModel.currentValue}'),
+            Text('${snapshot.data?.currentValue ?? 0}'),
           ],
         );
       },
@@ -75,27 +79,30 @@ class CounterWidget extends StatelessWidget {
   }
 }
 
-class PressMeButton extends StatefulWidget {
+class PressMeButton extends StatelessWidget {
+  final CounterInteractor interactor;
+
   const PressMeButton({
     super.key,
+    required this.interactor,
   });
 
   @override
-  State<PressMeButton> createState() => _PressMeButtonState();
-}
-
-class _PressMeButtonState extends State<PressMeButton> {
-  @override
   Widget build(BuildContext context) {
-    return Consumer<CounterModel>(builder: (_, counterModel, __) {
-      return TextButton(
-        onPressed: () {
-          counterModel.increment(by: 1);
+    return TextButton(
+      onPressed: () {
+        interactor.input.add(
+          CounterInteractorIncrementBy(1),
+        );
+      },
+      child: StreamBuilder(
+        stream: interactor.output,
+        builder: (context, snapshot) {
+          return Text(
+            'Press me Current value ${snapshot.data?.currentValue ?? 0}',
+          );
         },
-        child: Text(
-          'Press me Current value ${counterModel.currentValue}',
-        ),
-      );
-    });
+      ),
+    );
   }
 }
