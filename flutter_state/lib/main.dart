@@ -29,6 +29,18 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final CounterModel _counter = CounterModel();
+  late ValueNotifier<int> valueNotifier;
+
+  @override
+  void initState() {
+    super.initState();
+    valueNotifier = ValueNotifier(_counter.currentValue);
+    valueNotifier.addListener(() {
+      setState(() {
+        _counter.increment(by: valueNotifier.value - _counter.currentValue);
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,21 +52,35 @@ class _MainPageState extends State<MainPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CounterWidget(counter: _counter),
-            PressMeButton(counter: _counter),
+            CounterWidget(
+              counter: _counter,
+              valueNotifier: valueNotifier,
+            ),
+            PressMeButton(
+              counter: _counter,
+              valueNotifier: valueNotifier,
+            ),
           ],
         ),
       ),
     );
   }
+
+  @override
+  void dispose() {
+    valueNotifier.dispose();
+    super.dispose();
+  }
 }
 
 class CounterWidget extends StatelessWidget {
   final CounterModel _counter;
+  final ValueNotifier<int> valueNotifier;
 
   const CounterWidget({
     super.key,
     required CounterModel counter,
+    required this.valueNotifier,
   }) : _counter = counter;
 
   @override
@@ -69,10 +95,12 @@ class CounterWidget extends StatelessWidget {
 
 class PressMeButton extends StatefulWidget {
   final CounterModel _counter;
+  final ValueNotifier<int> valueNotifier;
 
   const PressMeButton({
     super.key,
     required CounterModel counter,
+    required this.valueNotifier,
   }) : _counter = counter;
 
   @override
@@ -84,9 +112,7 @@ class _PressMeButtonState extends State<PressMeButton> {
   Widget build(BuildContext context) {
     return TextButton(
       onPressed: () {
-        setState(() {
-          widget._counter.increment(by: 1);
-        });
+        widget.valueNotifier.value += 1;
       },
       child: Text(
         'Press me Current value ${widget._counter.currentValue}',
