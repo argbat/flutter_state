@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_state/counter_model.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,7 +16,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MainPage(),
+      home: Provider<CounterModel>(
+        create: (context) => CounterModel(),
+        child: const MainPage(),
+      ),
     );
   }
 }
@@ -28,16 +32,6 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  final CounterModel _counter = CounterModel();
-
-  @override
-  void initState() {
-    super.initState();
-    _counter.addListener(() {
-      setState(() {});
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,12 +42,8 @@ class _MainPageState extends State<MainPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CounterWidget(
-              counter: _counter,
-            ),
-            PressMeButton(
-              counter: _counter,
-            ),
+            CounterWidget(),
+            PressMeButton(),
           ],
         ),
       ),
@@ -62,36 +52,31 @@ class _MainPageState extends State<MainPage> {
 
   @override
   void dispose() {
-    _counter.dispose();
     super.dispose();
   }
 }
 
 class CounterWidget extends StatelessWidget {
-  final CounterModel _counter;
-
   const CounterWidget({
     super.key,
-    required CounterModel counter,
-  }) : _counter = counter;
+  });
 
   @override
   Widget build(BuildContext context) {
+    final counterModel = Provider.of<CounterModel>(context);
+
     return Column(
       children: [
-        Text(_counter.currentValue.toString()),
+        Text('${counterModel.currentValue}'),
       ],
     );
   }
 }
 
 class PressMeButton extends StatefulWidget {
-  final CounterModel _counter;
-
   const PressMeButton({
     super.key,
-    required CounterModel counter,
-  }) : _counter = counter;
+  });
 
   @override
   State<PressMeButton> createState() => _PressMeButtonState();
@@ -100,12 +85,14 @@ class PressMeButton extends StatefulWidget {
 class _PressMeButtonState extends State<PressMeButton> {
   @override
   Widget build(BuildContext context) {
+    final counterModel = Provider.of<CounterModel>(context);
+
     return TextButton(
       onPressed: () {
-        widget._counter.increment(by: 1);
+        counterModel.increment(by: 1);
       },
       child: Text(
-        'Press me Current value ${widget._counter.currentValue}',
+        'Press me Current value ${counterModel.currentValue}',
       ),
     );
   }
