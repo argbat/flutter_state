@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class CounterModel {
+class CounterModel extends ChangeNotifier {
   int _counter = 0;
 
   CounterModel();
@@ -9,5 +9,6 @@ class CounterModel {
 
   void increment({required int by}) {
     _counter += by;
+    notifyListeners();
   }
 }
